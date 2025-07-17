@@ -54,7 +54,7 @@ import static org.assertj.core.api.Assertions.fail;
 
 public abstract class AbstractMarshallerGeneratorTest<T> {
 
-    KogitoBuildContext context = JavaKogitoBuildContext.builder().build();
+    protected KogitoBuildContext context = JavaKogitoBuildContext.builder().build();
 
     private static final JavaCompiler JAVA_COMPILER = JavaCompilerFactory.loadCompiler(JavaConfiguration.CompilerType.NATIVE, "1.8");
 

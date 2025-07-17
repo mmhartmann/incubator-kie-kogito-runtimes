@@ -227,7 +227,7 @@ public abstract class WorkflowProcessor {
 
         Collection<ClassInfo> modelClasses = index
                 .getAllKnownImplementors(DotName.createSimple(Model.class.getCanonicalName()));
-        JandexProtoGenerator protoGenerator = JandexProtoGenerator.builder(index)
+        JandexProtoGenerator protoGenerator = JandexProtoGenerator.builder(context, index)
                 .build(modelClasses);
 
         PersistenceGenerator persistenceGenerator = new PersistenceGenerator(

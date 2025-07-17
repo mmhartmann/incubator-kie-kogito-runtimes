@@ -57,7 +57,7 @@ public class PersistenceGenerationHelper {
             @SuppressWarnings({ "rawtype", "unchecked" })
             Set<Class<?>> modelClasses = (Set) reflections.getSubTypesOf(Model.class);
 
-            ReflectionProtoGenerator protoGenerator = ReflectionProtoGenerator.builder()
+            ReflectionProtoGenerator protoGenerator = ReflectionProtoGenerator.builder(context)
                     .build(modelClasses);
 
             // Generate persistence files
