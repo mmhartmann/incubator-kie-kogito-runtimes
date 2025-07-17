@@ -44,7 +44,8 @@ class InfinispanPersistenceGeneratorTest extends AbstractPersistenceGeneratorTes
     void test(KogitoBuildContext context) {
         context.setApplicationProperty(KOGITO_PERSISTENCE_TYPE, persistenceType());
 
-        ReflectionProtoGenerator protoGenerator = ReflectionProtoGenerator.builder().build(Collections.singleton(GeneratedPOJO.class));
+        ReflectionProtoGenerator protoGenerator =
+                ReflectionProtoGenerator.builder(context).build(Collections.singleton(GeneratedPOJO.class));
         PersistenceGenerator persistenceGenerator = new PersistenceGenerator(
                 context,
                 protoGenerator,

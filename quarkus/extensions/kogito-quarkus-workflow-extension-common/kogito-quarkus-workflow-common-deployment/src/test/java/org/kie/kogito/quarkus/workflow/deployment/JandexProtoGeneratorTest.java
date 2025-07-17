@@ -40,7 +40,7 @@ class JandexProtoGeneratorTest extends AbstractProtoGeneratorTest<ClassInfo> {
 
     @Override
     protected ProtoGenerator.Builder<ClassInfo, JandexProtoGenerator> protoGeneratorBuilder() {
-        return JandexProtoGenerator.builder(indexWithAllClass);
+        return JandexProtoGenerator.builder(context, indexWithAllClass);
     }
 
     @Override

@@ -28,7 +28,7 @@ public class ReflectionMarshallerGeneratorTest extends AbstractMarshallerGenerat
 
     @Override
     protected ProtoGenerator.Builder protoGeneratorBuilder() {
-        return ReflectionProtoGenerator.builder();
+        return ReflectionProtoGenerator.builder(context);
     }
 
     @Override

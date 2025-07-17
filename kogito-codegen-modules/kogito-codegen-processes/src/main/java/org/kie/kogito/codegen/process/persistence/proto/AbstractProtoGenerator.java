@@ -34,6 +34,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.drools.codegen.common.GeneratedFile;
+import org.kie.kogito.codegen.api.context.KogitoBuildContext;
+import org.kie.kogito.codegen.process.persistence.SerializationFallbackUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -55,7 +57,13 @@ public abstract class AbstractProtoGenerator<T> implements ProtoGenerator {
     protected final Collection<T> modelClasses;
     protected final Collection<T> dataClasses;
 
-    protected AbstractProtoGenerator(Collection<T> rawModelClasses, Collection<T> rawDataClasses) {
+    protected final KogitoBuildContext context;
+    protected final SerializationFallbackUtils serializationFallbackUtils;
+
+    protected AbstractProtoGenerator(KogitoBuildContext context, Collection<T> rawModelClasses,
+            Collection<T> rawDataClasses) {
+        this.context = context;
+        this.serializationFallbackUtils = new SerializationFallbackUtils(context);
         this.modelClasses = rawModelClasses == null ? Collections.emptyList() : rawModelClasses;
         this.dataClasses = rawDataClasses == null ? Collections.emptyList() : rawDataClasses;
         this.mapper = new ObjectMapper();
@@ -222,6 +230,11 @@ public abstract class AbstractProtoGenerator<T> implements ProtoGenerator {
     protected abstract static class AbstractProtoGeneratorBuilder<E, T extends ProtoGenerator> implements Builder<E, T> {
 
         protected Collection<E> dataClasses;
+        protected KogitoBuildContext context;
+
+        public AbstractProtoGeneratorBuilder(KogitoBuildContext context) {
+            this.context = context;
+        }
 
         protected abstract Collection<E> extractDataClasses(Collection<E> modelClasses);
 
@@ -264,6 +277,19 @@ public abstract class AbstractProtoGenerator<T> implements ProtoGenerator {
             return "bytes";
         } else if (Instant.class.getCanonicalName().equals(type)) {
             return "kogito.Instant";
+        } else if (serializationFallbackUtils.shouldFallback(type)) {
+            try {
+                Class<?> cls = Class.forName(type);
+                if (!Serializable.class.isAssignableFrom(cls)) {
+                    throw new IllegalArgumentException(
+                            "Java type " + type + " is ignored for marshalling and not " +
+                                    "serializable. Enable marshalling for it or implement java.io.Serializable");
+                }
+                return KOGITO_SERIALIZABLE;
+            } catch (ClassNotFoundException e) {
+                return null;
+            }
+
         } else if (type.startsWith("java.lang") || type.startsWith("java.util") || type.startsWith("java.time") || type.startsWith("java.math")) {
             try {
                 Class<?> cls = Class.forName(type);

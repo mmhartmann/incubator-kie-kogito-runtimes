@@ -27,6 +27,8 @@ import java.util.Map;
 
 import org.drools.codegen.common.GeneratedFile;
 import org.junit.jupiter.api.Test;
+import org.kie.kogito.codegen.api.context.KogitoBuildContext;
+import org.kie.kogito.codegen.api.context.impl.JavaKogitoBuildContext;
 import org.kie.kogito.codegen.data.Address;
 import org.kie.kogito.codegen.data.Answer;
 import org.kie.kogito.codegen.data.AnswerBroken;
@@ -53,6 +55,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public abstract class AbstractProtoGeneratorTest<T> {
+
+    protected KogitoBuildContext context = JavaKogitoBuildContext.builder().build();
 
     protected abstract ProtoGenerator.Builder<T, ? extends AbstractProtoGenerator<T>> protoGeneratorBuilder();
 

@@ -27,7 +27,7 @@ class ReflectionProtoGeneratorTest extends AbstractProtoGeneratorTest<Class<?>> 
 
     @Override
     protected ProtoGenerator.Builder<Class<?>, ReflectionProtoGenerator> protoGeneratorBuilder() {
-        return ReflectionProtoGenerator.builder();
+        return ReflectionProtoGenerator.builder(context);
     }
 
     @Override

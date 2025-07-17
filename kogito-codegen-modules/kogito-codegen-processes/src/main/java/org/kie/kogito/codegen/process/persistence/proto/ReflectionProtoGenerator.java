@@ -41,7 +41,9 @@ import org.infinispan.protostream.annotations.ProtoEnumValue;
 import org.kie.kogito.Model;
 import org.kie.kogito.codegen.Generated;
 import org.kie.kogito.codegen.VariableInfo;
+import org.kie.kogito.codegen.api.context.KogitoBuildContext;
 import org.kie.kogito.codegen.process.persistence.ExclusionTypeUtils;
+import org.kie.kogito.codegen.process.persistence.SerializationFallbackUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,8 +53,8 @@ public class ReflectionProtoGenerator extends AbstractProtoGenerator<Class<?>> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ReflectionProtoGenerator.class);
 
-    private ReflectionProtoGenerator(Collection<Class<?>> modelClasses, Collection<Class<?>> dataClasses) {
-        super(modelClasses, dataClasses);
+    private ReflectionProtoGenerator(KogitoBuildContext context, Collection<Class<?>> modelClasses, Collection<Class<?>> dataClasses) {
+        super(context, modelClasses, dataClasses);
     }
 
     @Override
@@ -143,6 +145,12 @@ public class ReflectionProtoGenerator extends AbstractProtoGenerator<Class<?>> {
             if (typeExclusions.test(clazz.getCanonicalName())) {
                 return Optional.empty();
             }
+            
+            // Check if this class should fall back to default serialization instead of proto generation
+            if (serializationFallbackUtils.shouldFallback(clazz.getCanonicalName())) {
+                return Optional.empty();
+            }
+            
             Generated generatedData = clazz.getAnnotation(Generated.class);
             if (generatedData != null) {
                 name = generatedData.name().isEmpty() ? name : generatedData.name();
@@ -234,15 +242,16 @@ public class ReflectionProtoGenerator extends AbstractProtoGenerator<Class<?>> {
         return Optional.empty();
     }
 
-    public static Builder<Class<?>, ReflectionProtoGenerator> builder() {
-        return new ReflectionProtoGeneratorBuilder();
+    public static Builder<Class<?>, ReflectionProtoGenerator> builder(KogitoBuildContext context) {
+        return new ReflectionProtoGeneratorBuilder(context);
     }
 
     private static class ReflectionProtoGeneratorBuilder extends AbstractProtoGeneratorBuilder<Class<?>, ReflectionProtoGenerator> {
 
         private static final Logger LOGGER = LoggerFactory.getLogger(ReflectionProtoGeneratorBuilder.class);
 
-        private ReflectionProtoGeneratorBuilder() {
+        private ReflectionProtoGeneratorBuilder(KogitoBuildContext context) {
+            super(context);
         }
 
         @Override
@@ -252,14 +261,17 @@ public class ReflectionProtoGenerator extends AbstractProtoGenerator<Class<?>> {
                 return dataClasses;
             }
             Set<Class<?>> dataModelClasses = new HashSet<>();
+            SerializationFallbackUtils serializationFallbackUtils = new SerializationFallbackUtils(context);
             try {
                 for (Class<?> modelClazz : modelClasses) {
 
                     BeanInfo beanInfo = Introspector.getBeanInfo(modelClazz);
                     for (PropertyDescriptor pd : beanInfo.getPropertyDescriptors()) {
                         Class<?> propertyType = pd.getPropertyType();
-                        if (propertyType.getCanonicalName().startsWith("java.lang")
-                                || propertyType.getCanonicalName().equals(Date.class.getCanonicalName())
+                        String typeName = propertyType.getCanonicalName();
+                        if (typeName.startsWith("java.lang")
+                                || typeName.equals(Date.class.getCanonicalName())
+                                || serializationFallbackUtils.shouldFallback(typeName)
                                 || propertyType.isPrimitive()
                                 || propertyType.isInterface()) {
                             continue;
@@ -276,7 +288,7 @@ public class ReflectionProtoGenerator extends AbstractProtoGenerator<Class<?>> {
 
         @Override
         public ReflectionProtoGenerator build(Collection<Class<?>> modelClasses) {
-            return new ReflectionProtoGenerator(modelClasses, extractDataClasses(modelClasses));
+            return new ReflectionProtoGenerator(context, modelClasses, extractDataClasses(modelClasses));
         }
     }
 

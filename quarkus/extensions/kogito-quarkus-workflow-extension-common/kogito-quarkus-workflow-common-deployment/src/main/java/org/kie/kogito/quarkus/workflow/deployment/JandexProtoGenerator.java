@@ -41,6 +41,8 @@ import org.jboss.jandex.Type.Kind;
 import org.kie.kogito.Model;
 import org.kie.kogito.codegen.Generated;
 import org.kie.kogito.codegen.VariableInfo;
+import org.kie.kogito.codegen.api.context.KogitoBuildContext;
+import org.kie.kogito.codegen.process.persistence.SerializationFallbackUtils;
 import org.kie.kogito.codegen.process.persistence.proto.AbstractProtoGenerator;
 import org.kie.kogito.codegen.process.persistence.proto.Proto;
 import org.kie.kogito.codegen.process.persistence.proto.ProtoEnum;
@@ -62,8 +64,9 @@ public class JandexProtoGenerator extends AbstractProtoGenerator<ClassInfo> {
     private static final DotName modelClazz = DotName.createSimple(Model.class.getCanonicalName());
     private final IndexView index;
 
-    JandexProtoGenerator(Collection<ClassInfo> modelClasses, Collection<ClassInfo> dataClasses, IndexView index) {
-        super(modelClasses, dataClasses);
+    JandexProtoGenerator(KogitoBuildContext context, Collection<ClassInfo> modelClasses,
+            Collection<ClassInfo> dataClasses, IndexView index) {
+        super(context, modelClasses, dataClasses);
         this.index = index;
     }
 
@@ -81,6 +84,11 @@ public class JandexProtoGenerator extends AbstractProtoGenerator<ClassInfo> {
     protected Optional<String> extractName(ClassInfo clazz) {
         if (isHidden(clazz)) {
             // since class is marked as hidden skip processing of that class
+            return Optional.empty();
+        }
+
+        // Check if this class should fall back to default serialization instead of proto generation
+        if (serializationFallbackUtils.shouldFallback(clazz.name().toString())) {
             return Optional.empty();
         }
 
@@ -146,6 +154,7 @@ public class JandexProtoGenerator extends AbstractProtoGenerator<ClassInfo> {
                 fieldTypeString = COLLECTION;
 
                 List<Type> typeParameters = pd.type().kind() == Kind.CLASS ? emptyList() : pd.type().asParameterizedType().arguments();
+                // List<Type> typeParameters = extractCollectionTypeFromInterfaces(pd);
                 if (typeParameters.isEmpty()) {
                     throw new IllegalArgumentException("Field " + pd.name() + " of class " + clazz.name().toString()
                             + " uses collection without type information");
@@ -180,6 +189,33 @@ public class JandexProtoGenerator extends AbstractProtoGenerator<ClassInfo> {
         message.setComment(messageComment);
         proto.addMessage(message);
         return message;
+    }
+
+    private List<Type> extractCollectionTypeFromInterfaces(FieldInfo pd) {
+        if (pd.type().kind() != Kind.CLASS) {
+            return pd.type().asParameterizedType().arguments();
+        }
+
+        ClassInfo classInfo = index.getClassByName(pd.type().name());
+        if (classInfo == null) {
+            return emptyList();
+        }
+
+        // Check interfaces for parameterized Collection types
+        for (Type interfaceType : classInfo.interfaceTypes()) {
+            if (interfaceType.kind() == Kind.PARAMETERIZED_TYPE) {
+                try {
+                    Class<?> interfaceClass = Class.forName(interfaceType.name().toString());
+                    if (Collection.class.isAssignableFrom(interfaceClass)) {
+                        return interfaceType.asParameterizedType().arguments();
+                    }
+                } catch (ClassNotFoundException e) {
+                    // Continue to next interface
+                }
+            }
+        }
+
+        return emptyList();
     }
 
     protected boolean shouldGenerateProto(ClassInfo clazz) {
@@ -258,7 +294,11 @@ public class JandexProtoGenerator extends AbstractProtoGenerator<ClassInfo> {
                 throw new IllegalArgumentException(format("Can not find enum field ordinal for %s.%s", clazzName, field.name()));
             }
         }
-        pEnum.addField(field.name(), ordinal, sortedWithAnnotation);
+        // Create prefixed enum field name to avoid conflicts
+        String enumTypeName = field.type().name().local().toUpperCase();
+        String fieldName = enumTypeName + "_" + field.name();
+
+        pEnum.addField(fieldName, ordinal, sortedWithAnnotation);
     }
 
     @Override
@@ -314,8 +354,8 @@ public class JandexProtoGenerator extends AbstractProtoGenerator<ClassInfo> {
         return false;
     }
 
-    public static Builder<ClassInfo, JandexProtoGenerator> builder(IndexView index) {
-        return new JandexProtoGeneratorBuilder(index);
+    public static Builder<ClassInfo, JandexProtoGenerator> builder(KogitoBuildContext context, IndexView index) {
+        return new JandexProtoGeneratorBuilder(context, index);
     }
 
     private static class JandexProtoGeneratorBuilder extends AbstractProtoGeneratorBuilder<ClassInfo, JandexProtoGenerator> {
@@ -323,7 +363,8 @@ public class JandexProtoGenerator extends AbstractProtoGenerator<ClassInfo> {
         private static final Logger LOGGER = LoggerFactory.getLogger(JandexProtoGeneratorBuilder.class);
         private final IndexView index;
 
-        private JandexProtoGeneratorBuilder(IndexView index) {
+        private JandexProtoGeneratorBuilder(KogitoBuildContext context, IndexView index) {
+            super(context);
             this.index = index;
         }
 
@@ -334,13 +375,15 @@ public class JandexProtoGenerator extends AbstractProtoGenerator<ClassInfo> {
                 return dataClasses;
             }
             Set<ClassInfo> dataModelClasses = new HashSet<>();
+            SerializationFallbackUtils serializationFallbackUtils = new SerializationFallbackUtils(context);
             for (ClassInfo modelClazz : modelClasses) {
 
                 for (FieldInfo pd : modelClazz.fields()) {
-
-                    if (pd.type().name().toString().startsWith("java.lang")
-                            || pd.type().name().toString().startsWith("java.util")
-                            || pd.type().name().toString().equals(Date.class.getCanonicalName())) {
+                    String typeName = pd.type().name().toString();
+                    if (typeName.startsWith("java.lang")
+                            || typeName.startsWith("java.util")
+                            || serializationFallbackUtils.shouldFallback(typeName)
+                            || typeName.equals(Date.class.getCanonicalName())) {
                         continue;
                     }
                     ClassInfo clazzInfo = index.getClassByName(pd.type().name());
@@ -354,7 +397,7 @@ public class JandexProtoGenerator extends AbstractProtoGenerator<ClassInfo> {
 
         @Override
         public JandexProtoGenerator build(Collection<ClassInfo> modelClasses) {
-            return new JandexProtoGenerator(modelClasses, extractDataClasses(modelClasses), index);
+            return new JandexProtoGenerator(context, modelClasses, extractDataClasses(modelClasses), index);
         }
     }
 }
