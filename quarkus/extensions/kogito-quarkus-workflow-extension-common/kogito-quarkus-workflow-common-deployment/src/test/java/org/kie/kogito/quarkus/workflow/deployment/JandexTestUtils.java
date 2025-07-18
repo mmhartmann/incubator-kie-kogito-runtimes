@@ -29,27 +29,7 @@ import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.Index;
 import org.jboss.jandex.Indexer;
-import org.kie.kogito.codegen.data.Address;
-import org.kie.kogito.codegen.data.Answer;
-import org.kie.kogito.codegen.data.AnswerBroken;
-import org.kie.kogito.codegen.data.AnswerBrokenV2;
-import org.kie.kogito.codegen.data.AnswerWithAnnotations;
-import org.kie.kogito.codegen.data.EmptyConstructor;
-import org.kie.kogito.codegen.data.GeneratedPOJO;
-import org.kie.kogito.codegen.data.Hello;
-import org.kie.kogito.codegen.data.HelloModel;
-import org.kie.kogito.codegen.data.JacksonData;
-import org.kie.kogito.codegen.data.ListWithoutType;
-import org.kie.kogito.codegen.data.NotEmptyConstructor;
-import org.kie.kogito.codegen.data.Person;
-import org.kie.kogito.codegen.data.PersonSubClass;
-import org.kie.kogito.codegen.data.PersonVarInfo;
-import org.kie.kogito.codegen.data.PersonWithAddress;
-import org.kie.kogito.codegen.data.PersonWithAddresses;
-import org.kie.kogito.codegen.data.PersonWithList;
-import org.kie.kogito.codegen.data.Question;
-import org.kie.kogito.codegen.data.QuestionWithAnnotatedEnum;
-import org.kie.kogito.codegen.data.Travels;
+import org.kie.kogito.codegen.data.*;
 
 public final class JandexTestUtils {
 
@@ -65,6 +45,8 @@ public final class JandexTestUtils {
             AnswerBroken.class,
             AnswerBrokenV2.class,
             EmptyConstructor.class,
+            FallbackSerializableClass.class,
+            NestedFallbackSerializableClass.class,
             GeneratedPOJO.class,
             Hello.class,
             HelloModel.class,
@@ -76,6 +58,7 @@ public final class JandexTestUtils {
             PersonWithList.class,
             Question.class,
             QuestionWithAnnotatedEnum.class,
+            RegularSerializableClass.class,
             Travels.class,
             PersonSubClass.class,
             JacksonData.class,

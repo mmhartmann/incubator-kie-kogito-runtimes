@@ -87,7 +87,7 @@ public class ReflectionProtoGenerator extends AbstractProtoGenerator<Class<?>> {
                 completeFieldComment = fieldComment + "\n @VariableInfo(tags=\"" + varInfo.tags() + "\")";
             }
 
-            String fieldTypeString = pd.getPropertyType().getCanonicalName();
+            String fieldTypeString = pd.getPropertyType().getName();
             Class<?> fieldType = pd.getPropertyType();
             String protoType;
             if (pd.getPropertyType().isArray() && !pd.getPropertyType().getComponentType().isPrimitive()) {
