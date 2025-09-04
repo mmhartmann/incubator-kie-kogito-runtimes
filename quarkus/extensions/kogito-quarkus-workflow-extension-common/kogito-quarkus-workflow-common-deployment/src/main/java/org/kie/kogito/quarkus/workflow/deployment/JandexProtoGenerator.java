@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import org.apache.commons.lang3.NotImplementedException;
 import org.drools.codegen.common.GeneratedFile;
 import org.infinispan.protostream.annotations.ProtoEnumValue;
 import org.jboss.jandex.AnnotationInstance;
@@ -41,11 +42,7 @@ import org.jboss.jandex.Type.Kind;
 import org.kie.kogito.Model;
 import org.kie.kogito.codegen.Generated;
 import org.kie.kogito.codegen.VariableInfo;
-import org.kie.kogito.codegen.process.persistence.proto.AbstractProtoGenerator;
-import org.kie.kogito.codegen.process.persistence.proto.Proto;
-import org.kie.kogito.codegen.process.persistence.proto.ProtoEnum;
-import org.kie.kogito.codegen.process.persistence.proto.ProtoField;
-import org.kie.kogito.codegen.process.persistence.proto.ProtoMessage;
+import org.kie.kogito.codegen.process.persistence.proto.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,8 +59,9 @@ public class JandexProtoGenerator extends AbstractProtoGenerator<ClassInfo> {
     private static final DotName modelClazz = DotName.createSimple(Model.class.getCanonicalName());
     private final IndexView index;
 
-    JandexProtoGenerator(Collection<ClassInfo> modelClasses, Collection<ClassInfo> dataClasses, IndexView index) {
-        super(modelClasses, dataClasses);
+    JandexProtoGenerator(Collection<ClassInfo> modelClasses, Collection<ClassInfo> dataClasses,
+                         Collection<AbstractCustomProtoGenerator<?>> customProtoGenerators, IndexView index) {
+        super(modelClasses, dataClasses, customProtoGenerators);
         this.index = index;
     }
 
@@ -115,8 +113,14 @@ public class JandexProtoGenerator extends AbstractProtoGenerator<ClassInfo> {
         LOGGER.debug("Generating reflection proto for class {}", clazz);
 
         String name = extractName(clazz).get();
-
         ProtoMessage message = new ProtoMessage(name, clazz.name().prefix().toString());
+
+        // If applicable generate custom proto
+        Optional<ProtoMessage> customMessage = generateCustomProto(proto, clazz.name().toString(), messageComment);
+        if(customMessage.isPresent()) {
+            return customMessage.get();
+        }
+
         for (FieldInfo pd : extractAllFields(clazz)) {
             // ignore static and/or transient fields
             if (Modifier.isStatic(pd.flags()) || Modifier.isTransient(pd.flags())) {
@@ -355,8 +359,20 @@ public class JandexProtoGenerator extends AbstractProtoGenerator<ClassInfo> {
         }
 
         @Override
-        public JandexProtoGenerator build(Collection<ClassInfo> modelClasses) {
-            return new JandexProtoGenerator(modelClasses, extractDataClasses(modelClasses), index);
+        protected Collection<AbstractCustomProtoGenerator<?>> extractCustomProtoGenerators() {
+            if (customProtoGenerators != null) {
+                LOGGER.info("Using provided AbstractCustomProtoGenerator. This should happen only during tests.");
+                return customProtoGenerators;
+            }
+
+            return CustomProtoGeneratorUtils.serviceLoadProtoGenerators();
         }
+
+        @Override
+        public JandexProtoGenerator build(Collection<ClassInfo> modelClasses) {
+            return new JandexProtoGenerator(modelClasses, extractDataClasses(modelClasses),
+                    extractCustomProtoGenerators(), index);
+        }
+
     }
 }

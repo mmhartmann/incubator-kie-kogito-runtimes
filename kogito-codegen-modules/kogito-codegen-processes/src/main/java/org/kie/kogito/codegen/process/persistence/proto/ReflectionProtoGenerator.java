@@ -42,6 +42,8 @@ import org.kie.kogito.Model;
 import org.kie.kogito.codegen.Generated;
 import org.kie.kogito.codegen.VariableInfo;
 import org.kie.kogito.codegen.process.persistence.ExclusionTypeUtils;
+import org.kie.kogito.codegen.process.persistence.marshaller.AbstractCustomMarshaller;
+import org.kie.kogito.codegen.process.persistence.marshaller.CustomMarshallerUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,8 +53,9 @@ public class ReflectionProtoGenerator extends AbstractProtoGenerator<Class<?>> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ReflectionProtoGenerator.class);
 
-    private ReflectionProtoGenerator(Collection<Class<?>> modelClasses, Collection<Class<?>> dataClasses) {
-        super(modelClasses, dataClasses);
+    private ReflectionProtoGenerator(Collection<Class<?>> modelClasses, Collection<Class<?>> dataClasses,
+                                     Collection<AbstractCustomProtoGenerator<?>> customProtoGenerators) {
+        super(modelClasses, dataClasses,  customProtoGenerators);
     }
 
     @Override
@@ -71,6 +74,13 @@ public class ReflectionProtoGenerator extends AbstractProtoGenerator<Class<?>> {
 
         String clazzName = extractName(clazz).get();
         ProtoMessage message = new ProtoMessage(clazzName, clazz.getPackage().getName());
+
+        // If applicable generate custom proto
+        Optional<ProtoMessage> customMessage = generateCustomProto(proto, clazz.getName(), messageComment);
+        if(customMessage.isPresent()) {
+            return customMessage.get();
+        }
+
         Predicate<PropertyDescriptor> validPropertyFilter = property -> this.isValidProperty(clazz, property);
         List<PropertyDescriptor> propertiesDescriptor = List.of(Introspector.getBeanInfo(clazz).getPropertyDescriptors()).stream().filter(validPropertyFilter).toList();
         for (PropertyDescriptor pd : propertiesDescriptor) {
@@ -127,6 +137,7 @@ public class ReflectionProtoGenerator extends AbstractProtoGenerator<Class<?>> {
             }
 
         }
+
         message.setComment(messageComment);
         proto.addMessage(message);
         return message;
@@ -279,8 +290,18 @@ public class ReflectionProtoGenerator extends AbstractProtoGenerator<Class<?>> {
         }
 
         @Override
+        protected Collection<AbstractCustomProtoGenerator<?>> extractCustomProtoGenerators() {
+            if (customProtoGenerators != null) {
+                LOGGER.info("Using provided AbstractCustomProtoGenerator. This should happen only during tests.");
+                return customProtoGenerators;
+            }
+
+            return CustomProtoGeneratorUtils.serviceLoadProtoGenerators();
+        }
+
+        @Override
         public ReflectionProtoGenerator build(Collection<Class<?>> modelClasses) {
-            return new ReflectionProtoGenerator(modelClasses, extractDataClasses(modelClasses));
+            return new ReflectionProtoGenerator(modelClasses, extractDataClasses(modelClasses), extractCustomProtoGenerators());
         }
     }
 

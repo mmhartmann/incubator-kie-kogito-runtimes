@@ -54,10 +54,13 @@ public abstract class AbstractProtoGenerator<T> implements ProtoGenerator {
     protected final ObjectMapper mapper;
     protected final Collection<T> modelClasses;
     protected final Collection<T> dataClasses;
+    protected final Collection<AbstractCustomProtoGenerator<?>> customProtoGenerators;
 
-    protected AbstractProtoGenerator(Collection<T> rawModelClasses, Collection<T> rawDataClasses) {
+    protected AbstractProtoGenerator(Collection<T> rawModelClasses, Collection<T> rawDataClasses,
+                                     Collection<AbstractCustomProtoGenerator<?>> customProtoGenerators) {
         this.modelClasses = rawModelClasses == null ? Collections.emptyList() : rawModelClasses;
         this.dataClasses = rawDataClasses == null ? Collections.emptyList() : rawDataClasses;
+        this.customProtoGenerators = customProtoGenerators == null ? Collections.emptyList() : customProtoGenerators;
         this.mapper = new ObjectMapper();
     }
 
@@ -185,6 +188,29 @@ public abstract class AbstractProtoGenerator<T> implements ProtoGenerator {
         return proto;
     }
 
+    /// Check if any registered {@link AbstractCustomProtoGenerator} matches
+    /// the provided {@param className} and if available generate the message.
+    ///
+    /// Returns `true` if a message was generated.
+    protected Optional<ProtoMessage> generateCustomProto(Proto proto, String className, String messageComment) {
+        if (proto == null || className == null) {
+            return Optional.empty();
+        }
+
+        Optional<AbstractCustomProtoGenerator<?>> customProtoGenerator = customProtoGenerators.stream()
+                .filter(c -> c.getJavaClass().getName().equals(className)).findFirst();
+
+        if (customProtoGenerator.isPresent()) {
+            ProtoMessage message = customProtoGenerator.get().generateProto(proto);
+            message.setComment(messageComment);
+            proto.addMessage(message);
+
+            return Optional.of(message);
+        }
+
+        return Optional.empty();
+    }
+
     private boolean filterDataModels(T type) {
         Optional<String> stringType = fqn(type);
         if (stringType.isEmpty()) {
@@ -222,12 +248,21 @@ public abstract class AbstractProtoGenerator<T> implements ProtoGenerator {
     protected abstract static class AbstractProtoGeneratorBuilder<E, T extends ProtoGenerator> implements Builder<E, T> {
 
         protected Collection<E> dataClasses;
+        protected Collection<AbstractCustomProtoGenerator<?>> customProtoGenerators;
 
         protected abstract Collection<E> extractDataClasses(Collection<E> modelClasses);
 
         @Override
         public Builder<E, T> withDataClasses(Collection<E> dataClasses) {
             this.dataClasses = dataClasses;
+            return this;
+        }
+
+        protected abstract Collection<AbstractCustomProtoGenerator<?>> extractCustomProtoGenerators();
+
+        @Override
+        public Builder<E, T> withCustomProtoGenerators(Collection<AbstractCustomProtoGenerator<?>> customProtoGenerators) {
+            this.customProtoGenerators = customProtoGenerators;
             return this;
         }
     }

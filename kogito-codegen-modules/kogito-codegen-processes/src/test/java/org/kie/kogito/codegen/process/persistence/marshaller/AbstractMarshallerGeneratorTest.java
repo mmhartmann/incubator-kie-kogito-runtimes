@@ -29,16 +29,9 @@ import org.drools.compiler.compiler.io.memory.MemoryFileSystem;
 import org.junit.jupiter.api.Test;
 import org.kie.kogito.codegen.api.context.KogitoBuildContext;
 import org.kie.kogito.codegen.api.context.impl.JavaKogitoBuildContext;
-import org.kie.kogito.codegen.data.Answer;
-import org.kie.kogito.codegen.data.AnswerWithAnnotations;
-import org.kie.kogito.codegen.data.Person;
-import org.kie.kogito.codegen.data.PersonWithAddress;
-import org.kie.kogito.codegen.data.PersonWithAddresses;
-import org.kie.kogito.codegen.data.PersonWithBooleanGetAccessor;
-import org.kie.kogito.codegen.data.PersonWithList;
-import org.kie.kogito.codegen.data.Question;
-import org.kie.kogito.codegen.data.QuestionWithAnnotatedEnum;
+import org.kie.kogito.codegen.data.*;
 import org.kie.kogito.codegen.process.persistence.proto.AbstractProtoGenerator;
+import org.kie.kogito.codegen.process.persistence.proto.CustomProtoGenerator;
 import org.kie.kogito.codegen.process.persistence.proto.Proto;
 import org.kie.kogito.codegen.process.persistence.proto.ProtoGenerator;
 import org.kie.memorycompiler.CompilationResult;
@@ -243,6 +236,33 @@ public abstract class AbstractMarshallerGeneratorTest<T> {
 
             assertThat(compile(classes).getErrors()).isEmpty();
         });
+    }
+
+    @Test
+    void testCustomMarshallers() throws IOException {
+        ProtoGenerator generator = protoGeneratorBuilder()
+                .withDataClasses(convertTypes(PersonWithAddress.class))
+                .withCustomProtoGenerators(List.of(new AddressCustomProtoGenerator()))
+                .build(null);
+
+        Proto proto = generator.protoOfDataClasses("org.kie.kogito.test");
+        assertThat(proto).isNotNull();
+        assertThat(proto.getMessages()).hasSize(2);
+
+        MarshallerGenerator marshallerGenerator = withGenerator(PersonWithAddresses.class);
+
+        // TODO: this generate function does generate a AddressMessageMarshaller
+        //  although it should use the provided AddressCustomMarshaller
+        List<CompilationUnit> classes = marshallerGenerator.generate(proto.serialize());
+        assertThat(classes).isNotNull().hasSize(2);
+
+        Optional<ClassOrInterfaceDeclaration> marshallerClass = classes.get(0).getClassByName("AddressMessageMarshaller");
+        assertThat(marshallerClass).isPresent();
+        marshallerClass = classes.get(1).getClassByName("PersonWithAddressMessageMarshaller");
+        assertThat(marshallerClass).isPresent();
+
+        assertThat(compile(classes).getErrors()).isEmpty();
+
     }
 
     @Test

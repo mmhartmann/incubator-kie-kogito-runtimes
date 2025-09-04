@@ -44,6 +44,9 @@ public interface ProtoGenerator {
 
         Builder<E, T> withDataClasses(Collection<E> dataClasses);
 
+        Builder<E, T> withCustomProtoGenerators(Collection<AbstractCustomProtoGenerator<?>> customProtoGenerators);
+
         T build(Collection<E> modelClasses);
+
     }
 }

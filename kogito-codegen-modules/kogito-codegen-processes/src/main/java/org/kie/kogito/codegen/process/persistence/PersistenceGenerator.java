@@ -36,6 +36,8 @@ import org.kie.kogito.codegen.api.context.impl.JavaKogitoBuildContext;
 import org.kie.kogito.codegen.api.template.InvalidTemplateException;
 import org.kie.kogito.codegen.api.template.TemplatedGenerator;
 import org.kie.kogito.codegen.core.AbstractGenerator;
+import org.kie.kogito.codegen.process.persistence.marshaller.AbstractCustomMarshaller;
+import org.kie.kogito.codegen.process.persistence.marshaller.CustomMarshallerUtils;
 import org.kie.kogito.codegen.process.persistence.marshaller.MarshallerGenerator;
 import org.kie.kogito.codegen.process.persistence.proto.Proto;
 import org.kie.kogito.codegen.process.persistence.proto.ProtoGenerator;
@@ -198,6 +200,12 @@ public class PersistenceGenerator extends AbstractGenerator {
             variableMarshallers.add("org.jbpm.flow.serialization.marshaller.LongProtostreamBaseMarshaller");
             variableMarshallers.add("org.jbpm.flow.serialization.marshaller.InstantProtostreamBaseMarshaller");
             variableMarshallers.add("org.jbpm.flow.serialization.marshaller.SerializableProtostreamBaseMarshaller");
+
+            // Add custom marshallers loaded via ServiceLoader
+            Collection<AbstractCustomMarshaller<?>> customMarshallers = CustomMarshallerUtils.serviceLoadMarshallers();
+            for (AbstractCustomMarshaller<?> customMarshaller : customMarshallers) {
+                variableMarshallers.add(customMarshaller.getClass().getName());
+            }
 
             for (CompilationUnit unit : files) {
                 String packageName = unit.getPackageDeclaration().map(pd -> pd.getName().toString()).orElse("");

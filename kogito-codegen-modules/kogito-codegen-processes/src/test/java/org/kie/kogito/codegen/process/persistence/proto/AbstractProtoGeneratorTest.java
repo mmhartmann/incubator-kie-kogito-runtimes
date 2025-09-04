@@ -27,25 +27,7 @@ import java.util.Map;
 
 import org.drools.codegen.common.GeneratedFile;
 import org.junit.jupiter.api.Test;
-import org.kie.kogito.codegen.data.Address;
-import org.kie.kogito.codegen.data.Answer;
-import org.kie.kogito.codegen.data.AnswerBroken;
-import org.kie.kogito.codegen.data.AnswerBrokenV2;
-import org.kie.kogito.codegen.data.AnswerWithAnnotations;
-import org.kie.kogito.codegen.data.GeneratedPOJO;
-import org.kie.kogito.codegen.data.Hello;
-import org.kie.kogito.codegen.data.HelloModel;
-import org.kie.kogito.codegen.data.JacksonData;
-import org.kie.kogito.codegen.data.ListWithoutType;
-import org.kie.kogito.codegen.data.Person;
-import org.kie.kogito.codegen.data.PersonSubClass;
-import org.kie.kogito.codegen.data.PersonVarInfo;
-import org.kie.kogito.codegen.data.PersonWithAddress;
-import org.kie.kogito.codegen.data.PersonWithAddresses;
-import org.kie.kogito.codegen.data.PersonWithList;
-import org.kie.kogito.codegen.data.Question;
-import org.kie.kogito.codegen.data.QuestionWithAnnotatedEnum;
-import org.kie.kogito.codegen.data.Travels;
+import org.kie.kogito.codegen.data.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -825,6 +807,23 @@ public abstract class AbstractProtoGeneratorTest<T> {
         assertThat(personSubClass.getFields()).hasSize(19);
 
         assertClassIsIncludedInSubclass(person, personSubClass);
+    }
+
+    @Test
+    void testCustomProtoGeneration() {
+        AbstractProtoGenerator<T> generator = protoGeneratorBuilder()
+                .withDataClasses(List.of(convertToType(PersonWithAddress.class)))
+                .withCustomProtoGenerators(List.of(new AddressCustomProtoGenerator()))
+                .build(null);
+
+        Proto proto = generator.protoOfDataClasses("org.kie.kogito.test.persons");
+
+        assertThat(proto.getSyntax()).isEqualTo("proto2");
+        assertThat(proto.getMessages()).hasSize(2);
+        assertThat(proto.getMessages().get(1).getFields()).hasSize(4);
+        assertThat(proto.getMessages().get(0).getFields()).hasSize(1);
+        assertThat(proto.getMessages().get(0).getName()).isEqualTo("Address");
+        assertThat(proto.getMessages().get(0).getFields().get(0).getName()).isEqualTo("addressString");
     }
 
     private void assertClassIsIncludedInSubclass(ProtoMessage superClass, ProtoMessage subClass) {
