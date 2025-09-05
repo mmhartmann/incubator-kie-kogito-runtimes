@@ -1,6 +1,7 @@
 package org.kie.kogito.codegen.data;
 
 import org.kie.kogito.codegen.process.persistence.marshaller.AbstractCustomMarshaller;
+import org.infinispan.protostream.MessageMarshaller;
 
 import java.io.IOException;
 import java.util.List;
@@ -14,13 +15,13 @@ public class AddressCustomMarshaller extends AbstractCustomMarshaller<Address> {
     }
 
     @Override
-    public Address readFrom(ProtoStreamReader reader) throws IOException {
+    public Address readFrom(MessageMarshaller.ProtoStreamReader reader) throws IOException {
         String[] address = reader.readString(ADDRESS_STRING_FIELD).split("\\|");
         return new Address(address[0], address[1], address[2], address[3]);
     }
 
     @Override
-    public void writeTo(ProtoStreamWriter writer, Address address) throws IOException {
+    public void writeTo(MessageMarshaller.ProtoStreamWriter writer, Address address) throws IOException {
         writer.writeString(ADDRESS_STRING_FIELD, address.getStreet() + "|" + address.getCity() + "|" +
                 address.getZipCode() + "|" + address.getCountry()
         );

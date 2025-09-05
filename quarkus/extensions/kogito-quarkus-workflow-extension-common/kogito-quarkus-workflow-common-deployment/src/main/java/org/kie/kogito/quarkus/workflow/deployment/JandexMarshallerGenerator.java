@@ -24,14 +24,19 @@ import java.util.Collection;
 import org.infinispan.protostream.descriptors.FieldDescriptor;
 import org.jboss.jandex.ClassInfo;
 import org.kie.kogito.codegen.api.context.KogitoBuildContext;
+import org.kie.kogito.codegen.process.persistence.marshaller.AbstractCustomMarshaller;
 import org.kie.kogito.codegen.process.persistence.marshaller.AbstractMarshallerGenerator;
 
 public class JandexMarshallerGenerator extends AbstractMarshallerGenerator<ClassInfo> {
 
     public JandexMarshallerGenerator(KogitoBuildContext context, Collection<ClassInfo> rawDataClasses) {
-        super(context, rawDataClasses);
+        super(context, rawDataClasses, null);
     }
 
+    public JandexMarshallerGenerator(KogitoBuildContext context, Collection<ClassInfo> rawDataClasses,
+                                     Collection<AbstractCustomMarshaller<?>> customMarshallers) {
+        super(context, rawDataClasses, customMarshallers);
+    }
     @Override
     protected boolean isArray(String javaType, FieldDescriptor field) {
         try {

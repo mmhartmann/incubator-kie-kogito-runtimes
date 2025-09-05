@@ -370,8 +370,12 @@ public class JandexProtoGenerator extends AbstractProtoGenerator<ClassInfo> {
 
         @Override
         public JandexProtoGenerator build(Collection<ClassInfo> modelClasses) {
-            return new JandexProtoGenerator(modelClasses, extractDataClasses(modelClasses),
-                    extractCustomProtoGenerators(), index);
+            return build(modelClasses, extractCustomProtoGenerators());
+        }
+
+        @Override
+        public JandexProtoGenerator build(Collection<ClassInfo> modelClasses, Collection<AbstractCustomProtoGenerator<?>> customProtoGenerators) {
+            return new JandexProtoGenerator(modelClasses, extractDataClasses(modelClasses), extractCustomProtoGenerators(), index);
         }
 
     }

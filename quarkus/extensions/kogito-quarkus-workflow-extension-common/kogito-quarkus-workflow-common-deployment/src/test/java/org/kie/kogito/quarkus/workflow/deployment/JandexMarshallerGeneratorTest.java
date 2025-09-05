@@ -19,11 +19,13 @@
 package org.kie.kogito.quarkus.workflow.deployment;
 
 import java.util.Collection;
+import java.util.List;
 
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.Index;
 import org.junit.jupiter.api.BeforeAll;
 import org.kie.kogito.codegen.api.context.KogitoBuildContext;
+import org.kie.kogito.codegen.process.persistence.marshaller.AbstractCustomMarshaller;
 import org.kie.kogito.codegen.process.persistence.marshaller.AbstractMarshallerGeneratorTest;
 import org.kie.kogito.codegen.process.persistence.marshaller.MarshallerGenerator;
 import org.kie.kogito.codegen.process.persistence.proto.ProtoGenerator;
@@ -39,7 +41,12 @@ public class JandexMarshallerGeneratorTest extends AbstractMarshallerGeneratorTe
 
     @Override
     protected MarshallerGenerator generator(KogitoBuildContext context, Collection<ClassInfo> rawDataClasses) {
-        return new JandexMarshallerGenerator(context, rawDataClasses);
+        return generator(context, rawDataClasses, List.of());
+    }
+
+    @Override
+    protected MarshallerGenerator generator(KogitoBuildContext context, Collection<ClassInfo> rawDataClasses, Collection<AbstractCustomMarshaller<?>> customMarshallers) {
+        return new JandexMarshallerGenerator(context, rawDataClasses, customMarshallers);
     }
 
     @Override

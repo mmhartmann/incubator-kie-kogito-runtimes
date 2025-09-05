@@ -60,7 +60,7 @@ public abstract class AbstractProtoGenerator<T> implements ProtoGenerator {
                                      Collection<AbstractCustomProtoGenerator<?>> customProtoGenerators) {
         this.modelClasses = rawModelClasses == null ? Collections.emptyList() : rawModelClasses;
         this.dataClasses = rawDataClasses == null ? Collections.emptyList() : rawDataClasses;
-        this.customProtoGenerators = customProtoGenerators == null ? Collections.emptyList() : customProtoGenerators;
+        this.customProtoGenerators = customProtoGenerators == null ? CustomProtoGeneratorUtils.serviceLoadProtoGenerators() : customProtoGenerators;
         this.mapper = new ObjectMapper();
     }
 

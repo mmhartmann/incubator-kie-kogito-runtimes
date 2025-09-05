@@ -22,15 +22,23 @@ import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Optional;
 
 import org.infinispan.protostream.descriptors.FieldDescriptor;
 import org.kie.kogito.codegen.api.context.KogitoBuildContext;
+import org.kie.kogito.codegen.process.persistence.proto.AbstractCustomProtoGenerator;
+import org.kie.kogito.codegen.process.persistence.proto.CustomProtoGenerator;
 
 public class ReflectionMarshallerGenerator extends AbstractMarshallerGenerator<Class<?>> {
 
+    public ReflectionMarshallerGenerator(KogitoBuildContext context, Collection<Class<?>> rawDataClasses,
+                                         Collection<AbstractCustomMarshaller<?>> customMarshallers) {
+        super(context, rawDataClasses, customMarshallers);
+    }
+
     public ReflectionMarshallerGenerator(KogitoBuildContext context, Collection<Class<?>> rawDataClasses) {
-        super(context, rawDataClasses);
+        this(context, rawDataClasses, null);
     }
 
     public ReflectionMarshallerGenerator(KogitoBuildContext context) {

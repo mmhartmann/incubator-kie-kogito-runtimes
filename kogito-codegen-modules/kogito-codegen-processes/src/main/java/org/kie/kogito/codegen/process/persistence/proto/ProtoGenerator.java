@@ -48,5 +48,7 @@ public interface ProtoGenerator {
 
         T build(Collection<E> modelClasses);
 
+        T build(Collection<E> modelClasses, Collection<AbstractCustomProtoGenerator<?>> customProtoGenerators);
+
     }
 }

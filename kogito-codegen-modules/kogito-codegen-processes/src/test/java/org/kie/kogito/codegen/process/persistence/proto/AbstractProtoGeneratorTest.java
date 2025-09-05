@@ -100,6 +100,7 @@ public abstract class AbstractProtoGeneratorTest<T> {
     void testPersonWithAddressProtoFile() {
         AbstractProtoGenerator<T> generator = protoGeneratorBuilder()
                 .withDataClasses(Collections.singleton(convertToType(PersonWithAddress.class)))
+                .withCustomProtoGenerators(List.of())
                 .build(null);
 
         Proto proto = generator.protoOfDataClasses("org.kie.kogito.test");
@@ -236,6 +237,7 @@ public abstract class AbstractProtoGeneratorTest<T> {
     void testPersonWithAddressesProtoFile() {
         AbstractProtoGenerator<T> generator = protoGeneratorBuilder()
                 .withDataClasses(Collections.singleton(convertToType(PersonWithAddresses.class)))
+                .withCustomProtoGenerators(List.of())
                 .build(null);
 
         Proto proto = generator.protoOfDataClasses("org.kie.kogito.test");

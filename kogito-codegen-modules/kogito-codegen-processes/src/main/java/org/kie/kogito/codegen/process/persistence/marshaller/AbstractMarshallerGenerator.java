@@ -48,6 +48,7 @@ import org.kie.kogito.codegen.api.template.InvalidTemplateException;
 import org.kie.kogito.codegen.api.template.TemplatedGenerator;
 import org.kie.kogito.codegen.core.BodyDeclarationComparator;
 import org.kie.kogito.codegen.process.persistence.ExclusionTypeUtils;
+import org.kie.kogito.codegen.process.persistence.proto.AbstractCustomProtoGenerator;
 import org.kie.kogito.codegen.process.util.CodegenUtil;
 
 import com.github.javaparser.ast.CompilationUnit;
@@ -90,10 +91,13 @@ public abstract class AbstractMarshallerGenerator<T> implements MarshallerGenera
 
     private final KogitoBuildContext context;
     protected final Collection<T> modelClasses;
+    protected final Collection<AbstractCustomMarshaller<?>> customMarshallers;
 
-    public AbstractMarshallerGenerator(KogitoBuildContext context, Collection<T> rawDataClasses) {
+    public AbstractMarshallerGenerator(KogitoBuildContext context, Collection<T> rawDataClasses,
+                                       Collection<AbstractCustomMarshaller<?>> customMarshallers) {
         this.context = context;
         this.modelClasses = rawDataClasses == null ? Collections.emptyList() : rawDataClasses;
+        this.customMarshallers = customMarshallers == null ? CustomMarshallerUtils.serviceLoadMarshallers() : customMarshallers;
     }
 
     @Override
@@ -114,8 +118,9 @@ public abstract class AbstractMarshallerGenerator<T> implements MarshallerGenera
         // filter types that don't require to create a marshaller
         Predicate<Descriptor> packagePredicate = (msg) -> !msg.getFileDescriptor().getPackage().equals("kogito");
         Predicate<Descriptor> jacksonPredicate = (msg) -> !typeExclusions.test(packageFromOption(msg.getFileDescriptor(), msg) + "." + msg.getName());
+        Predicate<Descriptor> customPredicate = (msg) -> customMarshallers.stream().noneMatch(g -> g.getTypeName().equals(msg.getName()));
 
-        Predicate<Descriptor> predicate = packagePredicate.and(jacksonPredicate);
+        Predicate<Descriptor> predicate = packagePredicate.and(jacksonPredicate).and(customPredicate);
 
         CompilationUnit parsedClazzFile = generator.compilationUnitOrThrow();
 

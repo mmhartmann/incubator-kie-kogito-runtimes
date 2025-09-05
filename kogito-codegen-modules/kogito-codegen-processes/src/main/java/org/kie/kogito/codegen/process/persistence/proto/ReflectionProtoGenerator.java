@@ -301,7 +301,12 @@ public class ReflectionProtoGenerator extends AbstractProtoGenerator<Class<?>> {
 
         @Override
         public ReflectionProtoGenerator build(Collection<Class<?>> modelClasses) {
-            return new ReflectionProtoGenerator(modelClasses, extractDataClasses(modelClasses), extractCustomProtoGenerators());
+            return build(modelClasses, extractCustomProtoGenerators());
+        }
+
+        @Override
+        public ReflectionProtoGenerator build(Collection<Class<?>> modelClasses, Collection<AbstractCustomProtoGenerator<?>> customProtoGenerators) {
+            return new ReflectionProtoGenerator(modelClasses, extractDataClasses(modelClasses), customProtoGenerators);
         }
     }
 

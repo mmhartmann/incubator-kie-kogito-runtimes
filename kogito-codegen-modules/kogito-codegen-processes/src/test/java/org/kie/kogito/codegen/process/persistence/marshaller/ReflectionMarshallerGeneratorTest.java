@@ -19,6 +19,7 @@
 package org.kie.kogito.codegen.process.persistence.marshaller;
 
 import java.util.Collection;
+import java.util.List;
 
 import org.kie.kogito.codegen.api.context.KogitoBuildContext;
 import org.kie.kogito.codegen.process.persistence.proto.ProtoGenerator;
@@ -33,7 +34,14 @@ public class ReflectionMarshallerGeneratorTest extends AbstractMarshallerGenerat
 
     @Override
     protected MarshallerGenerator generator(KogitoBuildContext context, Collection<Class<?>> rawDataClasses) {
-        return new ReflectionMarshallerGenerator(context, rawDataClasses);
+        return generator(context, rawDataClasses, List.of());
+    }
+
+    @Override
+    protected MarshallerGenerator generator(KogitoBuildContext context, Collection<Class<?>> rawDataClasses,
+                                            Collection<AbstractCustomMarshaller<?>> customMarshallers) {
+
+        return new ReflectionMarshallerGenerator(context, rawDataClasses, customMarshallers);
     }
 
     @Override

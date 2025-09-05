@@ -57,6 +57,8 @@ public abstract class AbstractMarshallerGeneratorTest<T> {
 
     protected abstract MarshallerGenerator generator(KogitoBuildContext context, Collection<T> rawDataClasses);
 
+    protected abstract MarshallerGenerator generator(KogitoBuildContext context, Collection<T> rawDataClasses, Collection<AbstractCustomMarshaller<?>> customMarshallers);
+
     protected abstract ProtoGenerator.Builder<T, ? extends AbstractProtoGenerator<T>> protoGeneratorBuilder();
 
     protected abstract T convertToType(Class<?> clazz);
@@ -67,6 +69,11 @@ public abstract class AbstractMarshallerGeneratorTest<T> {
 
     protected MarshallerGenerator withGenerator(Class<?>... classes) {
         return generator(context, convertTypes(classes));
+    }
+
+    protected MarshallerGenerator withGenerator(Collection<AbstractCustomMarshaller<?>> customMarshallers,
+                                                Class<?>... classes) {
+        return generator(context, convertTypes(classes), customMarshallers);
     }
 
     @Test
@@ -163,7 +170,10 @@ public abstract class AbstractMarshallerGeneratorTest<T> {
 
     @Test
     void testPersonWithAddressMarshallers() throws Exception {
-        ProtoGenerator generator = protoGeneratorBuilder().withDataClasses(convertTypes(PersonWithAddress.class)).build(null);
+        ProtoGenerator generator = protoGeneratorBuilder()
+                .withDataClasses(convertTypes(PersonWithAddress.class))
+                .withCustomProtoGenerators(List.of())
+                .build(null);
 
         Proto proto = generator.protoOfDataClasses("org.kie.kogito.test");
         assertThat(proto).isNotNull();
@@ -184,7 +194,10 @@ public abstract class AbstractMarshallerGeneratorTest<T> {
 
     @Test
     void testPersonWithAddressesMarshallers() throws Exception {
-        ProtoGenerator generator = protoGeneratorBuilder().withDataClasses(convertTypes(PersonWithAddresses.class)).build(null);
+        ProtoGenerator generator = protoGeneratorBuilder()
+                .withDataClasses(convertTypes(PersonWithAddresses.class))
+                .withCustomProtoGenerators(List.of())
+                .build(null);
 
         Proto proto = generator.protoOfDataClasses("org.kie.kogito.test");
         assertThat(proto).isNotNull();
@@ -249,16 +262,12 @@ public abstract class AbstractMarshallerGeneratorTest<T> {
         assertThat(proto).isNotNull();
         assertThat(proto.getMessages()).hasSize(2);
 
-        MarshallerGenerator marshallerGenerator = withGenerator(PersonWithAddresses.class);
+        MarshallerGenerator marshallerGenerator = withGenerator(List.of(new AddressCustomMarshaller()), PersonWithAddresses.class);
 
-        // TODO: this generate function does generate a AddressMessageMarshaller
-        //  although it should use the provided AddressCustomMarshaller
         List<CompilationUnit> classes = marshallerGenerator.generate(proto.serialize());
-        assertThat(classes).isNotNull().hasSize(2);
+        assertThat(classes).isNotNull().hasSize(1);
 
-        Optional<ClassOrInterfaceDeclaration> marshallerClass = classes.get(0).getClassByName("AddressMessageMarshaller");
-        assertThat(marshallerClass).isPresent();
-        marshallerClass = classes.get(1).getClassByName("PersonWithAddressMessageMarshaller");
+        Optional<ClassOrInterfaceDeclaration> marshallerClass = classes.get(0).getClassByName("PersonWithAddressMessageMarshaller");
         assertThat(marshallerClass).isPresent();
 
         assertThat(compile(classes).getErrors()).isEmpty();
