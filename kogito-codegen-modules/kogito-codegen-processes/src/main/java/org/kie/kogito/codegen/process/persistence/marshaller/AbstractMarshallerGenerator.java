@@ -48,7 +48,6 @@ import org.kie.kogito.codegen.api.template.InvalidTemplateException;
 import org.kie.kogito.codegen.api.template.TemplatedGenerator;
 import org.kie.kogito.codegen.core.BodyDeclarationComparator;
 import org.kie.kogito.codegen.process.persistence.ExclusionTypeUtils;
-import org.kie.kogito.codegen.process.persistence.proto.AbstractCustomProtoGenerator;
 import org.kie.kogito.codegen.process.util.CodegenUtil;
 
 import com.github.javaparser.ast.CompilationUnit;
@@ -94,7 +93,7 @@ public abstract class AbstractMarshallerGenerator<T> implements MarshallerGenera
     protected final Collection<AbstractCustomMarshaller<?>> customMarshallers;
 
     public AbstractMarshallerGenerator(KogitoBuildContext context, Collection<T> rawDataClasses,
-                                       Collection<AbstractCustomMarshaller<?>> customMarshallers) {
+            Collection<AbstractCustomMarshaller<?>> customMarshallers) {
         this.context = context;
         this.modelClasses = rawDataClasses == null ? Collections.emptyList() : rawDataClasses;
         this.customMarshallers = customMarshallers == null ? CustomMarshallerUtils.serviceLoadMarshallers() : customMarshallers;

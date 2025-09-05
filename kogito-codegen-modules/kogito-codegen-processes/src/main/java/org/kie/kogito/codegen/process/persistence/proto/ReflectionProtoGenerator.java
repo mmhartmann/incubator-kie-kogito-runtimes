@@ -42,8 +42,6 @@ import org.kie.kogito.Model;
 import org.kie.kogito.codegen.Generated;
 import org.kie.kogito.codegen.VariableInfo;
 import org.kie.kogito.codegen.process.persistence.ExclusionTypeUtils;
-import org.kie.kogito.codegen.process.persistence.marshaller.AbstractCustomMarshaller;
-import org.kie.kogito.codegen.process.persistence.marshaller.CustomMarshallerUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,7 +75,7 @@ public class ReflectionProtoGenerator extends AbstractProtoGenerator<Class<?>> {
 
         // If applicable generate custom proto
         Optional<ProtoMessage> customMessage = generateCustomProto(proto, clazz.getName(), messageComment);
-        if(customMessage.isPresent()) {
+        if (customMessage.isPresent()) {
             return customMessage.get();
         }
 

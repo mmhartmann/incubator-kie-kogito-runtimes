@@ -1,7 +1,6 @@
 package org.kie.kogito.codegen.process.persistence.marshaller;
 
 import org.kie.kogito.codegen.process.persistence.proto.AbstractCustomProtoGenerator;
-import org.kie.kogito.codegen.process.persistence.proto.AbstractProtoGenerator;
 
 public abstract class AbstractCustomMarshaller<T> implements CustomMarshaller<T> {
 

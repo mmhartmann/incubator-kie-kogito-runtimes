@@ -31,7 +31,6 @@ import org.kie.kogito.codegen.api.context.KogitoBuildContext;
 import org.kie.kogito.codegen.api.context.impl.JavaKogitoBuildContext;
 import org.kie.kogito.codegen.data.*;
 import org.kie.kogito.codegen.process.persistence.proto.AbstractProtoGenerator;
-import org.kie.kogito.codegen.process.persistence.proto.CustomProtoGenerator;
 import org.kie.kogito.codegen.process.persistence.proto.Proto;
 import org.kie.kogito.codegen.process.persistence.proto.ProtoGenerator;
 import org.kie.memorycompiler.CompilationResult;
@@ -72,7 +71,7 @@ public abstract class AbstractMarshallerGeneratorTest<T> {
     }
 
     protected MarshallerGenerator withGenerator(Collection<AbstractCustomMarshaller<?>> customMarshallers,
-                                                Class<?>... classes) {
+            Class<?>... classes) {
         return generator(context, convertTypes(classes), customMarshallers);
     }
 
