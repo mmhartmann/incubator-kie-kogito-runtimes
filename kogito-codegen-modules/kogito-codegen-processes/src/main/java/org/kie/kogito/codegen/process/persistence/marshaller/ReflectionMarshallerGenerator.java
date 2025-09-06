@@ -30,7 +30,7 @@ import org.kie.kogito.codegen.api.context.KogitoBuildContext;
 public class ReflectionMarshallerGenerator extends AbstractMarshallerGenerator<Class<?>> {
 
     public ReflectionMarshallerGenerator(KogitoBuildContext context, Collection<Class<?>> rawDataClasses,
-                                         Collection<AbstractCustomMarshaller<?>> customMarshallers) {
+            Collection<CustomMarshaller<?>> customMarshallers) {
         super(context, rawDataClasses, customMarshallers);
     }
 

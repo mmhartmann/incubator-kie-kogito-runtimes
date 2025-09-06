@@ -90,10 +90,10 @@ public abstract class AbstractMarshallerGenerator<T> implements MarshallerGenera
 
     private final KogitoBuildContext context;
     protected final Collection<T> modelClasses;
-    protected final Collection<AbstractCustomMarshaller<?>> customMarshallers;
+    protected final Collection<CustomMarshaller<?>> customMarshallers;
 
     public AbstractMarshallerGenerator(KogitoBuildContext context, Collection<T> rawDataClasses,
-            Collection<AbstractCustomMarshaller<?>> customMarshallers) {
+            Collection<CustomMarshaller<?>> customMarshallers) {
         this.context = context;
         this.modelClasses = rawDataClasses == null ? Collections.emptyList() : rawDataClasses;
         this.customMarshallers = customMarshallers == null ? CustomMarshallerUtils.serviceLoadMarshallers() : customMarshallers;
@@ -117,7 +117,10 @@ public abstract class AbstractMarshallerGenerator<T> implements MarshallerGenera
         // filter types that don't require to create a marshaller
         Predicate<Descriptor> packagePredicate = (msg) -> !msg.getFileDescriptor().getPackage().equals("kogito");
         Predicate<Descriptor> jacksonPredicate = (msg) -> !typeExclusions.test(packageFromOption(msg.getFileDescriptor(), msg) + "." + msg.getName());
-        Predicate<Descriptor> customPredicate = (msg) -> customMarshallers.stream().noneMatch(g -> g.getTypeName().equals(msg.getName()));
+        Predicate<Descriptor> customPredicate = (msg) -> customMarshallers.stream().noneMatch(g -> {
+            System.out.println(g.getJavaClass().getSimpleName() + " / " + msg.getName());
+            return g.getJavaClass().getSimpleName().equals(msg.getName());
+        });
 
         Predicate<Descriptor> predicate = packagePredicate.and(jacksonPredicate).and(customPredicate);
 

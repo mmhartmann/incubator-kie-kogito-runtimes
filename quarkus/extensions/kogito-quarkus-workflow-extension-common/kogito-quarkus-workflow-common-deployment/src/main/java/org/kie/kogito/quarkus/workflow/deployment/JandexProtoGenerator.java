@@ -28,16 +28,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import org.apache.commons.lang3.NotImplementedException;
 import org.drools.codegen.common.GeneratedFile;
 import org.infinispan.protostream.annotations.ProtoEnumValue;
-import org.jboss.jandex.AnnotationInstance;
-import org.jboss.jandex.AnnotationValue;
-import org.jboss.jandex.ClassInfo;
-import org.jboss.jandex.DotName;
-import org.jboss.jandex.FieldInfo;
-import org.jboss.jandex.IndexView;
-import org.jboss.jandex.Type;
+import org.jboss.jandex.*;
 import org.jboss.jandex.Type.Kind;
 import org.kie.kogito.Model;
 import org.kie.kogito.codegen.Generated;
@@ -60,7 +53,7 @@ public class JandexProtoGenerator extends AbstractProtoGenerator<ClassInfo> {
     private final IndexView index;
 
     JandexProtoGenerator(Collection<ClassInfo> modelClasses, Collection<ClassInfo> dataClasses,
-                         Collection<AbstractCustomProtoGenerator<?>> customProtoGenerators, IndexView index) {
+            Collection<AbstractCustomProtoGenerator<?>> customProtoGenerators, IndexView index) {
         super(modelClasses, dataClasses, customProtoGenerators);
         this.index = index;
     }
@@ -113,11 +106,12 @@ public class JandexProtoGenerator extends AbstractProtoGenerator<ClassInfo> {
         LOGGER.debug("Generating reflection proto for class {}", clazz);
 
         String name = extractName(clazz).get();
+
         ProtoMessage message = new ProtoMessage(name, clazz.name().prefix().toString());
 
         // If applicable generate custom proto
-        Optional<ProtoMessage> customMessage = generateCustomProto(proto, clazz.name().toString(), messageComment);
-        if(customMessage.isPresent()) {
+        Optional<ProtoMessage> customMessage = generateCustomProto(proto, JandexReflection.loadClass(clazz), messageComment);
+        if (customMessage.isPresent()) {
             return customMessage.get();
         }
 
@@ -359,9 +353,9 @@ public class JandexProtoGenerator extends AbstractProtoGenerator<ClassInfo> {
         }
 
         @Override
-        protected Collection<AbstractCustomProtoGenerator<?>> extractCustomProtoGenerators() {
+        protected Collection<CustomProtoGenerator<?>> extractCustomProtoGenerators() {
             if (customProtoGenerators != null) {
-                LOGGER.info("Using provided AbstractCustomProtoGenerator. This should happen only during tests.");
+                LOGGER.info("Using provided CustomProtoGenerator. This should happen only during tests.");
                 return customProtoGenerators;
             }
 

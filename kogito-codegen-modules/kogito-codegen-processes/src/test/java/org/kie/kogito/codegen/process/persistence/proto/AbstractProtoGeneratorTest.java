@@ -35,6 +35,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public abstract class AbstractProtoGeneratorTest<T> {
+    
+    private final String namespace = "org.kie.kogito.codegen.data";
 
     protected abstract ProtoGenerator.Builder<T, ? extends AbstractProtoGenerator<T>> protoGeneratorBuilder();
 
@@ -58,7 +60,7 @@ public abstract class AbstractProtoGeneratorTest<T> {
         ProtoMessage travel = proto.getMessages().get(1);
         assertThat(travel).isNotNull();
         assertThat(travel.getName()).isEqualTo("Travels");
-        assertThat(travel.getJavaPackageOption()).isEqualTo("org.kie.kogito.codegen.data");
+        assertThat(travel.getJavaPackageOption()).isEqualTo(namespace);
         assertThat(travel.getFields()).hasSize(2);
 
         ProtoField field = travel.getFields().get(0);
@@ -113,7 +115,7 @@ public abstract class AbstractProtoGeneratorTest<T> {
         ProtoMessage address = proto.getMessages().get(0);
         assertThat(address).isNotNull();
         assertThat(address.getName()).isEqualTo("Address");
-        assertThat(address.getJavaPackageOption()).isEqualTo("org.kie.kogito.codegen.data");
+        assertThat(address.getJavaPackageOption()).isEqualTo(namespace);
         assertThat(address.getFields()).hasSize(4);
 
         ProtoField field = address.getFields().get(0);
@@ -143,7 +145,7 @@ public abstract class AbstractProtoGeneratorTest<T> {
         ProtoMessage person = proto.getMessages().get(1);
         assertThat(person).isNotNull();
         assertThat(person.getName()).isEqualTo("PersonWithAddress");
-        assertThat(person.getJavaPackageOption()).isEqualTo("org.kie.kogito.codegen.data");
+        assertThat(person.getJavaPackageOption()).isEqualTo(namespace);
         assertThat(person.getFields()).hasSize(4);
 
         field = person.getFields().get(0);
@@ -187,7 +189,7 @@ public abstract class AbstractProtoGeneratorTest<T> {
         ProtoMessage address = proto.getMessages().get(0);
         assertThat(address).isNotNull();
         assertThat(address.getName()).isEqualTo("PersonWithList");
-        assertThat(address.getJavaPackageOption()).isEqualTo("org.kie.kogito.codegen.data");
+        assertThat(address.getJavaPackageOption()).isEqualTo(namespace);
         assertThat(address.getFields()).hasSize(7);
 
         ProtoField field = address.getFields().get(0);
@@ -250,7 +252,7 @@ public abstract class AbstractProtoGeneratorTest<T> {
         ProtoMessage address = proto.getMessages().get(0);
         assertThat(address).isNotNull();
         assertThat(address.getName()).isEqualTo("Address");
-        assertThat(address.getJavaPackageOption()).isEqualTo("org.kie.kogito.codegen.data");
+        assertThat(address.getJavaPackageOption()).isEqualTo(namespace);
         assertThat(address.getFields()).hasSize(4);
 
         ProtoField field = address.getFields().get(0);
@@ -280,7 +282,7 @@ public abstract class AbstractProtoGeneratorTest<T> {
         ProtoMessage person = proto.getMessages().get(1);
         assertThat(person).isNotNull();
         assertThat(person.getName()).isEqualTo("PersonWithAddresses");
-        assertThat(person.getJavaPackageOption()).isEqualTo("org.kie.kogito.codegen.data");
+        assertThat(person.getJavaPackageOption()).isEqualTo(namespace);
         assertThat(person.getFields()).hasSize(4);
 
         field = person.getFields().get(0);
@@ -328,7 +330,7 @@ public abstract class AbstractProtoGeneratorTest<T> {
         assertThat(person).isNotNull();
         assertThat(person.getName()).isEqualTo("Person");
         assertThat(person.getComment()).isEqualTo("@Indexed");
-        assertThat(person.getJavaPackageOption()).isEqualTo("org.kie.kogito.codegen.data");
+        assertThat(person.getJavaPackageOption()).isEqualTo(namespace);
         assertThat(person.getFields()).hasSize(18);
 
         int index = 0;
@@ -485,7 +487,7 @@ public abstract class AbstractProtoGeneratorTest<T> {
         assertThat(person).isNotNull();
         assertThat(person.getName()).isEqualTo("PersonVarInfo");
         assertThat(person.getComment()).isEqualTo("@Indexed");
-        assertThat(person.getJavaPackageOption()).isEqualTo("org.kie.kogito.codegen.data");
+        assertThat(person.getJavaPackageOption()).isEqualTo(namespace);
         assertThat(person.getFields()).hasSize(3);
 
         ProtoField field = person.getFields().get(0);
@@ -526,7 +528,7 @@ public abstract class AbstractProtoGeneratorTest<T> {
         ProtoEnum answer = proto.getEnums().get(0);
         assertThat(answer).isNotNull();
         assertThat(answer.getName()).isEqualTo("Answer");
-        assertThat(answer.getJavaPackageOption()).isEqualTo("org.kie.kogito.codegen.data");
+        assertThat(answer.getJavaPackageOption()).isEqualTo(namespace);
         assertThat(answer.getFields()).hasSize(3);
 
         Map<String, Integer> fields = answer.getFields();
@@ -583,7 +585,7 @@ public abstract class AbstractProtoGeneratorTest<T> {
         ProtoEnum answer = proto.getEnums().get(0);
         assertThat(answer).isNotNull();
         assertThat(answer.getName()).isEqualTo(AnswerWithAnnotations.class.getSimpleName());
-        assertThat(answer.getJavaPackageOption()).isEqualTo("org.kie.kogito.codegen.data");
+        assertThat(answer.getJavaPackageOption()).isEqualTo(namespace);
         assertThat(answer.getFields()).hasSize(3);
 
         Map<String, Integer> fields = answer.getFields();
@@ -609,7 +611,7 @@ public abstract class AbstractProtoGeneratorTest<T> {
         assertThat(answer).isNotNull();
         assertThat(answer.getName()).isEqualTo("Answer");
         assertThat(answer.getComment()).isBlank();
-        assertThat(answer.getJavaPackageOption()).isEqualTo("org.kie.kogito.codegen.data");
+        assertThat(answer.getJavaPackageOption()).isEqualTo(namespace);
         assertThat(answer.getFields()).hasSize(3);
 
         Map<String, Integer> fields = answer.getFields();
@@ -635,7 +637,7 @@ public abstract class AbstractProtoGeneratorTest<T> {
         ProtoMessage question = proto.getMessages().get(0);
         assertThat(question).isNotNull();
         assertThat(question.getName()).isEqualTo("Question");
-        assertThat(question.getJavaPackageOption()).isEqualTo("org.kie.kogito.codegen.data");
+        assertThat(question.getJavaPackageOption()).isEqualTo(namespace);
         assertThat(question.getFields()).hasSize(2);
 
         ProtoField field = question.getFields().get(0);
@@ -667,7 +669,7 @@ public abstract class AbstractProtoGeneratorTest<T> {
         ProtoMessage question = proto.getMessages().get(0);
         assertThat(question).isNotNull();
         assertThat(question.getName()).isEqualTo(QuestionWithAnnotatedEnum.class.getSimpleName());
-        assertThat(question.getJavaPackageOption()).isEqualTo("org.kie.kogito.codegen.data");
+        assertThat(question.getJavaPackageOption()).isEqualTo(namespace);
         assertThat(question.getFields()).hasSize(2);
 
         ProtoField field = question.getFields().get(0);
@@ -799,13 +801,13 @@ public abstract class AbstractProtoGeneratorTest<T> {
         ProtoMessage person = proto.getMessages().get(0);
         assertThat(person).isNotNull();
         assertThat(person.getName()).isEqualTo("Person");
-        assertThat(person.getJavaPackageOption()).isEqualTo("org.kie.kogito.codegen.data");
+        assertThat(person.getJavaPackageOption()).isEqualTo(namespace);
         assertThat(person.getFields()).hasSize(18);
 
         ProtoMessage personSubClass = proto.getMessages().get(1);
         assertThat(personSubClass).isNotNull();
         assertThat(personSubClass.getName()).isEqualTo("PersonSubClass");
-        assertThat(personSubClass.getJavaPackageOption()).isEqualTo("org.kie.kogito.codegen.data");
+        assertThat(personSubClass.getJavaPackageOption()).isEqualTo(namespace);
         assertThat(personSubClass.getFields()).hasSize(19);
 
         assertClassIsIncludedInSubclass(person, personSubClass);
@@ -815,7 +817,7 @@ public abstract class AbstractProtoGeneratorTest<T> {
     void testCustomProtoGeneration() {
         AbstractProtoGenerator<T> generator = protoGeneratorBuilder()
                 .withDataClasses(List.of(convertToType(PersonWithAddress.class)))
-                .withCustomProtoGenerators(List.of(new AddressCustomProtoGenerator()))
+                .withCustomProtoGenerators(List.of(new AddressCustomProtoGenerator(namespace)))
                 .build(null);
 
         Proto proto = generator.protoOfDataClasses("org.kie.kogito.test.persons");

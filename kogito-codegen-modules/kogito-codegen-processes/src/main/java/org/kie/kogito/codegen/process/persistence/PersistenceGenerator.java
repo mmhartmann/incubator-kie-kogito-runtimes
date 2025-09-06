@@ -37,6 +37,7 @@ import org.kie.kogito.codegen.api.template.InvalidTemplateException;
 import org.kie.kogito.codegen.api.template.TemplatedGenerator;
 import org.kie.kogito.codegen.core.AbstractGenerator;
 import org.kie.kogito.codegen.process.persistence.marshaller.AbstractCustomMarshaller;
+import org.kie.kogito.codegen.process.persistence.marshaller.CustomMarshaller;
 import org.kie.kogito.codegen.process.persistence.marshaller.CustomMarshallerUtils;
 import org.kie.kogito.codegen.process.persistence.marshaller.MarshallerGenerator;
 import org.kie.kogito.codegen.process.persistence.proto.Proto;
@@ -202,8 +203,8 @@ public class PersistenceGenerator extends AbstractGenerator {
             variableMarshallers.add("org.jbpm.flow.serialization.marshaller.SerializableProtostreamBaseMarshaller");
 
             // Add custom marshallers loaded via ServiceLoader
-            Collection<AbstractCustomMarshaller<?>> customMarshallers = CustomMarshallerUtils.serviceLoadMarshallers();
-            for (AbstractCustomMarshaller<?> customMarshaller : customMarshallers) {
+            Collection<CustomMarshaller<?>> customMarshallers = CustomMarshallerUtils.serviceLoadMarshallers();
+            for (CustomMarshaller<?> customMarshaller : customMarshallers) {
                 variableMarshallers.add(customMarshaller.getClass().getName());
             }
 

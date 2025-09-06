@@ -34,9 +34,10 @@ public class JandexMarshallerGenerator extends AbstractMarshallerGenerator<Class
     }
 
     public JandexMarshallerGenerator(KogitoBuildContext context, Collection<ClassInfo> rawDataClasses,
-                                     Collection<AbstractCustomMarshaller<?>> customMarshallers) {
+            Collection<AbstractCustomMarshaller<?>> customMarshallers) {
         super(context, rawDataClasses, customMarshallers);
     }
+
     @Override
     protected boolean isArray(String javaType, FieldDescriptor field) {
         try {

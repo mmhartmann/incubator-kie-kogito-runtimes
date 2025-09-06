@@ -8,8 +8,8 @@ public class AddressCustomProtoGenerator extends AbstractCustomProtoGenerator<Ad
 
     final static protected String ADDRESS_STRING_FIELD = "addressString";
 
-    public AddressCustomProtoGenerator() {
-        super(Address.class);
+    public AddressCustomProtoGenerator(String namespace) {
+        super(Address.class, namespace);
     }
 
     @Override

@@ -54,10 +54,14 @@ public abstract class AbstractProtoGenerator<T> implements ProtoGenerator {
     protected final ObjectMapper mapper;
     protected final Collection<T> modelClasses;
     protected final Collection<T> dataClasses;
-    protected final Collection<AbstractCustomProtoGenerator<?>> customProtoGenerators;
+    protected final Collection<CustomProtoGenerator<?>> customProtoGenerators;
+
+    protected AbstractProtoGenerator(Collection<T> rawModelClasses, Collection<T> rawDataClasses) {
+        this(rawModelClasses, rawDataClasses, null);
+    }
 
     protected AbstractProtoGenerator(Collection<T> rawModelClasses, Collection<T> rawDataClasses,
-                                     Collection<AbstractCustomProtoGenerator<?>> customProtoGenerators) {
+            Collection<CustomProtoGenerator<?>> customProtoGenerators) {
         this.modelClasses = rawModelClasses == null ? Collections.emptyList() : rawModelClasses;
         this.dataClasses = rawDataClasses == null ? Collections.emptyList() : rawDataClasses;
         this.customProtoGenerators = customProtoGenerators == null ? CustomProtoGeneratorUtils.serviceLoadProtoGenerators() : customProtoGenerators;
@@ -192,13 +196,13 @@ public abstract class AbstractProtoGenerator<T> implements ProtoGenerator {
     /// the provided {@param className} and if available generate the message.
     ///
     /// Returns `true` if a message was generated.
-    protected Optional<ProtoMessage> generateCustomProto(Proto proto, String className, String messageComment) {
-        if (proto == null || className == null) {
+    protected Optional<ProtoMessage> generateCustomProto(Proto proto, Class<?> clazz, String messageComment) {
+        if (proto == null || clazz == null) {
             return Optional.empty();
         }
 
-        Optional<AbstractCustomProtoGenerator<?>> customProtoGenerator = customProtoGenerators.stream()
-                .filter(c -> c.getJavaClass().getName().equals(className)).findFirst();
+        Optional<CustomProtoGenerator<?>> customProtoGenerator = customProtoGenerators.stream()
+                .filter(c -> c.canProcess(clazz)).findFirst();
 
         if (customProtoGenerator.isPresent()) {
             ProtoMessage message = customProtoGenerator.get().generateProto(proto);
@@ -248,7 +252,7 @@ public abstract class AbstractProtoGenerator<T> implements ProtoGenerator {
     protected abstract static class AbstractProtoGeneratorBuilder<E, T extends ProtoGenerator> implements Builder<E, T> {
 
         protected Collection<E> dataClasses;
-        protected Collection<AbstractCustomProtoGenerator<?>> customProtoGenerators;
+        protected Collection<CustomProtoGenerator<?>> customProtoGenerators;
 
         protected abstract Collection<E> extractDataClasses(Collection<E> modelClasses);
 
@@ -258,10 +262,10 @@ public abstract class AbstractProtoGenerator<T> implements ProtoGenerator {
             return this;
         }
 
-        protected abstract Collection<AbstractCustomProtoGenerator<?>> extractCustomProtoGenerators();
+        protected abstract Collection<CustomProtoGenerator<?>> extractCustomProtoGenerators();
 
         @Override
-        public Builder<E, T> withCustomProtoGenerators(Collection<AbstractCustomProtoGenerator<?>> customProtoGenerators) {
+        public Builder<E, T> withCustomProtoGenerators(Collection<CustomProtoGenerator<?>> customProtoGenerators) {
             this.customProtoGenerators = customProtoGenerators;
             return this;
         }
@@ -299,7 +303,10 @@ public abstract class AbstractProtoGenerator<T> implements ProtoGenerator {
             return "bytes";
         } else if (Instant.class.getCanonicalName().equals(type)) {
             return "kogito.Instant";
-        } else if (type.startsWith("java.lang") || type.startsWith("java.util") || type.startsWith("java.time") || type.startsWith("java.math")) {
+        } else if (customProtoGenerators.stream().anyMatch(c -> c.getJavaClass().getName().equals(type))) {
+            return null;
+        } else if (type.startsWith("java.lang") || type.startsWith("java.util") || type.startsWith("java" +
+                ".time") || type.startsWith("java.math")) {
             try {
                 Class<?> cls = Class.forName(type);
                 if (cls.isInterface()) {

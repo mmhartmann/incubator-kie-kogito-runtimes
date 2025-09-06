@@ -2,19 +2,32 @@ package org.kie.kogito.codegen.process.persistence.proto;
 
 public abstract class AbstractCustomProtoGenerator<T> implements CustomProtoGenerator<T> {
 
-    private final Class<T> javaClass;
+    protected final Class<T> clazz;
+    protected final String namespace;
 
-    public AbstractCustomProtoGenerator(Class<T> javaClass) {
-        this.javaClass = javaClass;
+    public AbstractCustomProtoGenerator(Class<T> clazz, String namespace) {
+        this.clazz = clazz;
+        this.namespace = namespace;
     }
 
-    public Class<T> getJavaClass() {
-        return javaClass;
+    @Override
+    public Class<?> getJavaClass() {
+        return clazz;
     }
 
     @Override
     public String getTypeName() {
-        return getJavaClass().getSimpleName();
+        return clazz.getSimpleName();
+    }
+
+    @Override
+    public String getFullName() {
+        return namespace + "." + getTypeName();
+    }
+
+    @Override
+    public boolean canProcess(Class<?> clazz) {
+        return clazz.equals(getJavaClass());
     }
 
     @Override

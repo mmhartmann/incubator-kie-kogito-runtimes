@@ -52,8 +52,8 @@ public class ReflectionProtoGenerator extends AbstractProtoGenerator<Class<?>> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ReflectionProtoGenerator.class);
 
     private ReflectionProtoGenerator(Collection<Class<?>> modelClasses, Collection<Class<?>> dataClasses,
-                                     Collection<AbstractCustomProtoGenerator<?>> customProtoGenerators) {
-        super(modelClasses, dataClasses,  customProtoGenerators);
+            Collection<CustomProtoGenerator<?>> customProtoGenerators) {
+        super(modelClasses, dataClasses, customProtoGenerators);
     }
 
     @Override
@@ -74,7 +74,7 @@ public class ReflectionProtoGenerator extends AbstractProtoGenerator<Class<?>> {
         ProtoMessage message = new ProtoMessage(clazzName, clazz.getPackage().getName());
 
         // If applicable generate custom proto
-        Optional<ProtoMessage> customMessage = generateCustomProto(proto, clazz.getName(), messageComment);
+        Optional<ProtoMessage> customMessage = generateCustomProto(proto, clazz, messageComment);
         if (customMessage.isPresent()) {
             return customMessage.get();
         }
@@ -288,9 +288,9 @@ public class ReflectionProtoGenerator extends AbstractProtoGenerator<Class<?>> {
         }
 
         @Override
-        protected Collection<AbstractCustomProtoGenerator<?>> extractCustomProtoGenerators() {
+        protected Collection<CustomProtoGenerator<?>> extractCustomProtoGenerators() {
             if (customProtoGenerators != null) {
-                LOGGER.info("Using provided AbstractCustomProtoGenerator. This should happen only during tests.");
+                LOGGER.info("Using provided CustomProtoGenerator. This should happen only during tests.");
                 return customProtoGenerators;
             }
 
@@ -303,7 +303,7 @@ public class ReflectionProtoGenerator extends AbstractProtoGenerator<Class<?>> {
         }
 
         @Override
-        public ReflectionProtoGenerator build(Collection<Class<?>> modelClasses, Collection<AbstractCustomProtoGenerator<?>> customProtoGenerators) {
+        public ReflectionProtoGenerator build(Collection<Class<?>> modelClasses, Collection<CustomProtoGenerator<?>> customProtoGenerators) {
             return new ReflectionProtoGenerator(modelClasses, extractDataClasses(modelClasses), customProtoGenerators);
         }
     }

@@ -34,12 +34,12 @@ public class ReflectionMarshallerGeneratorTest extends AbstractMarshallerGenerat
 
     @Override
     protected MarshallerGenerator generator(KogitoBuildContext context, Collection<Class<?>> rawDataClasses) {
-        return generator(context, rawDataClasses, List.of());
+        return generator(context, rawDataClasses, List.<CustomMarshaller<?>>of());
     }
 
     @Override
     protected MarshallerGenerator generator(KogitoBuildContext context, Collection<Class<?>> rawDataClasses,
-                                            Collection<AbstractCustomMarshaller<?>> customMarshallers) {
+            Collection<CustomMarshaller<?>> customMarshallers) {
 
         return new ReflectionMarshallerGenerator(context, rawDataClasses, customMarshallers);
     }

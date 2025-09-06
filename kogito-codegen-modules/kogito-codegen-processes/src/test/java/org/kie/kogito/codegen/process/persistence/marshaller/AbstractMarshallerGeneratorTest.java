@@ -50,13 +50,15 @@ import static org.kie.kogito.codegen.api.context.ContextAttributesConstants.KOGI
 
 public abstract class AbstractMarshallerGeneratorTest<T> {
 
+    private final String namespace = "org.kie.kogito.codegen.data";
+
     KogitoBuildContext context = JavaKogitoBuildContext.builder().build();
 
     private static final JavaCompiler JAVA_COMPILER = JavaCompilerFactory.loadCompiler(JavaConfiguration.CompilerType.NATIVE, "1.8");
 
     protected abstract MarshallerGenerator generator(KogitoBuildContext context, Collection<T> rawDataClasses);
 
-    protected abstract MarshallerGenerator generator(KogitoBuildContext context, Collection<T> rawDataClasses, Collection<AbstractCustomMarshaller<?>> customMarshallers);
+    protected abstract MarshallerGenerator generator(KogitoBuildContext context, Collection<T> rawDataClasses, Collection<CustomMarshaller<?>> customMarshallers);
 
     protected abstract ProtoGenerator.Builder<T, ? extends AbstractProtoGenerator<T>> protoGeneratorBuilder();
 
@@ -70,7 +72,7 @@ public abstract class AbstractMarshallerGeneratorTest<T> {
         return generator(context, convertTypes(classes));
     }
 
-    protected MarshallerGenerator withGenerator(Collection<AbstractCustomMarshaller<?>> customMarshallers,
+    protected MarshallerGenerator withGenerator(Collection<CustomMarshaller<?>> customMarshallers,
             Class<?>... classes) {
         return generator(context, convertTypes(classes), customMarshallers);
     }
@@ -254,14 +256,14 @@ public abstract class AbstractMarshallerGeneratorTest<T> {
     void testCustomMarshallers() throws IOException {
         ProtoGenerator generator = protoGeneratorBuilder()
                 .withDataClasses(convertTypes(PersonWithAddress.class))
-                .withCustomProtoGenerators(List.of(new AddressCustomProtoGenerator()))
+                .withCustomProtoGenerators(List.of(new AddressCustomProtoGenerator(namespace)))
                 .build(null);
 
-        Proto proto = generator.protoOfDataClasses("org.kie.kogito.test");
+        Proto proto = generator.protoOfDataClasses(namespace);
         assertThat(proto).isNotNull();
         assertThat(proto.getMessages()).hasSize(2);
 
-        MarshallerGenerator marshallerGenerator = withGenerator(List.of(new AddressCustomMarshaller()), PersonWithAddresses.class);
+        MarshallerGenerator marshallerGenerator = withGenerator(List.of(new AddressCustomMarshaller(namespace)), PersonWithAddresses.class);
 
         List<CompilationUnit> classes = marshallerGenerator.generate(proto.serialize());
         assertThat(classes).isNotNull().hasSize(1);
